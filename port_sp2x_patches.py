@@ -137,82 +137,83 @@ if __name__ == "__main__":
     min_margin_union = 0 # For union type patches: Same as above. Can typically be lower as union patches tend to look for and replace a larger chunk of hex data 
     # Iterate through patches
     for item in old_data:
-        # Memory patches
-        if item["type"] == "memory":
-            new_item = item
-            results = []
-            for patch in new_item["patches"]:
-                # Reset vars
-                margin = max_margin
-                patchFound = False
-                
-                # Iterate through max -> min margin until ONE match is found in the new dll
-                while not patchFound and margin >= min_margin_memory:
-                    old_slice = get_slice(old_dll, patch["offset"], get_bytes_length(patch["dataDisabled"]), margin, margin)
-                    new_occurences = find_slice(new_dll, old_slice, margin)
+        if "type" in item:
+            # Memory patches
+            if item["type"] == "memory":
+                new_item = item
+                results = []
+                for patch in new_item["patches"]:
+                    # Reset vars
+                    margin = max_margin
+                    patchFound = False
                     
-                    # If ONE occurence is found in new_dll, assume it's the correct patch
-                    if len(new_occurences) == 1:
-                        patchFound = True
-                        results.append([ patch["offset"], new_occurences[0] ])
-                        patch["offset"] = new_occurences[0]
-                        break
-                    margin -= 1
-            
-            count_old_patches = len(item["patches"])
-            count_results = len(results)
-            
-            if count_old_patches == count_results:
-                print(f"[Memory] '{new_item["name"]}' found!")
-                new_patches_count += 1
-                new_items.append(json.dumps(new_item, indent=4))
-                for result in results:
-                    print(f"'{result[0]}' -> '{result[1]}'")
-            else:
-                not_found += f"[Memory] '{item["name"]}': not found ({count_results}/{count_old_patches})\n"
-                    
-        # Union patches
-        if item["type"] == "union":
-            new_item = item
-            # Compatibility checks
-            compatible = True
-            sample = new_item["patches"][0]["patch"]
-            for patch in new_item["patches"]:
-                if patch["patch"]["offset"] != sample["offset"]:
-                    compatible = False
-                    not_found += f"[Union] '{patch["name"]}': incompatible (sub-patch offset mismatch)\n"
-                    break
-                elif get_bytes_length(patch["patch"]["data"]) != get_bytes_length(sample["data"]):
-                    compatible = False
-                    not_found += f"[Union] '{patch["name"]}': incompatible (sub-patch data length mismatch)\n"
-                    break
+                    # Iterate through max -> min margin until ONE match is found in the new dll
+                    while not patchFound and margin >= min_margin_memory:
+                        old_slice = get_slice(old_dll, patch["offset"], get_bytes_length(patch["dataDisabled"]), margin, margin)
+                        new_occurences = find_slice(new_dll, old_slice, margin)
+                        
+                        # If ONE occurence is found in new_dll, assume it's the correct patch
+                        if len(new_occurences) == 1:
+                            patchFound = True
+                            results.append([ patch["offset"], new_occurences[0] ])
+                            patch["offset"] = new_occurences[0]
+                            break
+                        margin -= 1
                 
-            if compatible:
-                # Reset vars
-                margin = max_margin
-                itemFound = False
-                result = ""
+                count_old_patches = len(item["patches"])
+                count_results = len(results)
                 
-                # Iterate through max -> min margin until ONE match is found in the new dll
-                while not itemFound and margin >= min_margin_union:
-                    old_slice = get_slice(old_dll, sample["offset"], get_bytes_length(sample["data"]), margin, margin)
-                    new_occurences = find_slice(new_dll, old_slice, margin)
-                    
-                    # If ONE occurence is found in new_dll, assume it's the correct patch
-                    if len(new_occurences) == 1:
-                        itemFound = True
-                        result = new_occurences[0]
-                        break
-                    margin -= 1                        
-        
-                if result != "":
-                    for patch in new_item["patches"]:
-                        patch["patch"]["offset"] = result
-                    new_items.append(json.dumps(new_item, indent=4))
+                if count_old_patches == count_results:
+                    print(f"[Memory] '{new_item["name"]}' found!")
                     new_patches_count += 1
-                    print(f"[Union] '{item["name"]}' found!\n'{sample["offset"]}' -> '{result}'")
-                elif margin <= min_margin_union:
-                    not_found += f"[Union] '{item["name"]}': not found\n"
+                    new_items.append(json.dumps(new_item, indent=4))
+                    for result in results:
+                        print(f"'{result[0]}' -> '{result[1]}'")
+                else:
+                    not_found += f"[Memory] '{item["name"]}': not found ({count_results}/{count_old_patches})\n"
+                        
+            # Union patches
+            if item["type"] == "union":
+                new_item = item
+                # Compatibility checks
+                compatible = True
+                sample = new_item["patches"][0]["patch"]
+                for patch in new_item["patches"]:
+                    if patch["patch"]["offset"] != sample["offset"]:
+                        compatible = False
+                        not_found += f"[Union] '{patch["name"]}': incompatible (sub-patch offset mismatch)\n"
+                        break
+                    elif get_bytes_length(patch["patch"]["data"]) != get_bytes_length(sample["data"]):
+                        compatible = False
+                        not_found += f"[Union] '{patch["name"]}': incompatible (sub-patch data length mismatch)\n"
+                        break
+                    
+                if compatible:
+                    # Reset vars
+                    margin = max_margin
+                    itemFound = False
+                    result = ""
+                    
+                    # Iterate through max -> min margin until ONE match is found in the new dll
+                    while not itemFound and margin >= min_margin_union:
+                        old_slice = get_slice(old_dll, sample["offset"], get_bytes_length(sample["data"]), margin, margin)
+                        new_occurences = find_slice(new_dll, old_slice, margin)
+                        
+                        # If ONE occurence is found in new_dll, assume it's the correct patch
+                        if len(new_occurences) == 1:
+                            itemFound = True
+                            result = new_occurences[0]
+                            break
+                        margin -= 1                        
+            
+                    if result != "":
+                        for patch in new_item["patches"]:
+                            patch["patch"]["offset"] = result
+                        new_items.append(json.dumps(new_item, indent=4))
+                        new_patches_count += 1
+                        print(f"[Union] '{item["name"]}' found!\n'{sample["offset"]}' -> '{result}'")
+                    elif margin <= min_margin_union:
+                        not_found += f"[Union] '{item["name"]}': not found\n"
     
     # Print results
     print(not_found)
