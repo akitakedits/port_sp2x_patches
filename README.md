@@ -14,7 +14,8 @@ Python script to automatically port as many Spice2x patches as possible from one
 The script iterates through each patch attempting to find its default hex data in the new dll.  
 It tries to find slices\* of said data in the new dll, lowering its margin\* value with each iteration.  
 This allows for precision to be maximized, avoiding false positives as much as possible.  
-The script stops iterating over a patch once it finds only **one** occurence of its slice in the new dll at which point it **assumes** that's the new offset for that patch.  
+The script stops iterating once only **one** occurence of the slice is found in the new dll, then **assumes** that's the new offset for that patch.  
+
 \**slice: the bytes modified by the patch PLUS a margin.*  
 \**margin: the amount of bytes added on either side of the patch's data for matching purposes.*
 
