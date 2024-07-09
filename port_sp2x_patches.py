@@ -164,13 +164,13 @@ if __name__ == "__main__":
                 count_results = len(results)
                 
                 if count_old_patches == count_results:
-                    print(f"[Memory] '{new_item["name"]}' found!")
+                    print(f"[Memory] '{new_item['name']}' found!")
                     new_patches_count += 1
                     new_items.append(json.dumps(new_item, indent=4))
                     for result in results:
                         print(f"'{result[0]}' -> '{result[1]}'")
                 else:
-                    not_found += f"[Memory] '{item["name"]}': not found ({count_results}/{count_old_patches})\n"
+                    not_found += f"[Memory] '{item['name']}': not found ({count_results}/{count_old_patches})\n"
                         
             # Union patches
             if item["type"] == "union":
@@ -181,11 +181,11 @@ if __name__ == "__main__":
                 for patch in new_item["patches"]:
                     if patch["patch"]["offset"] != sample["offset"]:
                         compatible = False
-                        not_found += f"[Union] '{patch["name"]}': incompatible (sub-patch offset mismatch)\n"
+                        not_found += f"[Union] '{patch['name']}': incompatible (sub-patch offset mismatch)\n"
                         break
                     elif get_bytes_length(patch["patch"]["data"]) != get_bytes_length(sample["data"]):
                         compatible = False
-                        not_found += f"[Union] '{patch["name"]}': incompatible (sub-patch data length mismatch)\n"
+                        not_found += f"[Union] '{patch['name']}': incompatible (sub-patch data length mismatch)\n"
                         break
                     
                 if compatible:
@@ -211,9 +211,9 @@ if __name__ == "__main__":
                             patch["patch"]["offset"] = result
                         new_items.append(json.dumps(new_item, indent=4))
                         new_patches_count += 1
-                        print(f"[Union] '{item["name"]}' found!\n'{sample["offset"]}' -> '{result}'")
+                        print(f"[Union] '{item['name']}' found!\n'{sample['offset']}' -> '{result}'")
                     elif margin <= min_margin_union:
-                        not_found += f"[Union] '{item["name"]}': not found\n"
+                        not_found += f"[Union] '{item['name']}': not found\n"
     
     # Print results
     print(not_found)
