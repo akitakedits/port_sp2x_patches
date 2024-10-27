@@ -1,4 +1,4 @@
-# port_sp2x_patches
+## **Replaced by [find_sp2x_patches](https://github.com/akitakedits/find_sp2x_patches), a more robust script making use of signature matching.**
 
 ## About
 
